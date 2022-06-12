@@ -123,8 +123,10 @@ public:
     void destroyWithoutElement(treeNode* root){
         if(!root)
             return;
-        destroyWithoutElement(root->getLeft());
-        destroyWithoutElement(root->getRight());
+        if(root->getLeft())
+            destroyWithoutElement(root->getLeft());
+        if(root->getRight())
+            destroyWithoutElement(root->getRight());
         delete root;
     }
 
@@ -144,28 +146,17 @@ public:
 
     treeNode* llRotate(treeNode* node){
         treeNode* temp = node->getLeft(); //node = b
-        node->setLeft(temp->getRight());
+        node->setLeft(temp->getRight()); // temp = a
         temp->setRight(node);
         node->setHeight(max(height(node->getLeft()),height(node->getRight())) + 1);
         temp->setHeight(max(height(temp->getLeft()), height(node) + 1));
-        if(node->getRight() && node->getLeft()) {
-            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + node->getRight()->getSizeOfSubtree() + 1);
-            temp->setSizeOfSubtree(temp->getLeft()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
-            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getRight()->getSumOfGrades() +node->getElement()->getGrade());
-            temp->setSumOfGrades(temp->getLeft()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-        }
-        else if(node->getRight() && !temp->getRight()){
-            node->setSizeOfSubtree( node->getRight()->getSizeOfSubtree() + 1);
-            temp->setSizeOfSubtree(temp->getLeft()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
-            node->setSumOfGrades( node->getRight()->getSumOfGrades() +node->getElement()->getGrade());
-            temp->setSumOfGrades(temp->getLeft()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-        }
-        else {
-            node->setSizeOfSubtree(1);
-            temp->increaseSizeOfSubtree();
-            node->setSumOfGrades(node->getElement()->getGrade());
-            temp->setSumOfGrades(temp->getLeft()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-        }
+
+//        increaseRankSums(node,node->getElement(),node->getKey());
+        ///guy ll
+        node->setSizeOfSubtree(sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()) + 1);
+        node->setSumOfGrades(sumOfGrades(node->getRight()) + sumOfGrades(node->getLeft()) + node->getElement()->getGrade());
+        temp->setSizeOfSubtree(sizeOfSubTree(temp->getLeft()) + sizeOfSubTree(temp->getRight()) + 1);
+        temp->setSumOfGrades(sumOfGrades(temp->getLeft()) + sumOfGrades(temp->getRight()) + temp->getElement()->getGrade());
         return temp;
     }
 
@@ -175,30 +166,64 @@ public:
         temp->setLeft(node);
         node->setHeight(max(height(node->getLeft()),height(node->getRight())) + 1);
         temp->setHeight(max(height(node->getRight()),height(node)) + 1);
-        if(node->getLeft() && node->getRight()){
-            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + node->getRight()->getSizeOfSubtree() + 1);
-            temp->setSizeOfSubtree( temp->getRight()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
-            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getRight()->getSumOfGrades() + node->getElement()->getGrade());
-            temp->setSumOfGrades(temp->getRight()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-            return temp;
-        }
-        if(node->getLeft() && !temp->getLeft()){
-            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + 1);
-            temp->setSizeOfSubtree(temp->getRight()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
-            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getElement()->getGrade());
-            temp->setSumOfGrades(temp->getRight()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-            return temp;
-        }
-        else{
-            node->setSizeOfSubtree(1);
-            temp->increaseSizeOfSubtree();
-            node->setSumOfGrades(node->getElement()->getGrade());
-            temp->setSumOfGrades(temp->getLeft()->getSumOfGrades() + temp->getRight()->getSumOfGrades()+temp->getElement()->getGrade());
-        }
+//
+//        increaseRankSums(node,node->getElement(),node->getKey());
+        ///guy  rr
+        node->setSizeOfSubtree(sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()) + 1);
+        node->setSumOfGrades(sumOfGrades(node->getRight()) + sumOfGrades(node->getLeft()) + node->getElement()->getGrade());
+        temp->setSizeOfSubtree(sizeOfSubTree(temp->getLeft()) + sizeOfSubTree(temp->getRight()) + 1);
+        temp->setSumOfGrades(sumOfGrades(temp->getLeft()) + sumOfGrades(temp->getRight()) + temp->getElement()->getGrade());
+
+
+//        if(node->getLeft() && node->getRight()){
+//            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + node->getRight()->getSizeOfSubtree() + 1);
+//            temp->setSizeOfSubtree( temp->getRight()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
+//            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getRight()->getSumOfGrades() + node->getElement()->getGrade());
+//            temp->setSumOfGrades(temp->getRight()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
+//            return temp;
+//        }
+//        if(node->getLeft() && !node->getRight()){
+//            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + 1);
+//            temp->setSizeOfSubtree(temp->getRight()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
+//            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getElement()->getGrade());
+//            temp->setSumOfGrades(temp->getRight()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
+//            return temp;
+//        }
+//        else{
+//            node->setSizeOfSubtree(1);
+//            temp->increaseSizeOfSubtree();
+//            node->setSumOfGrades(node->getElement()->getGrade());
+////            temp->setSumOfGrades(temp->getLeft()->getSumOfGrades() + temp->getRight()->getSumOfGrades()+temp->getElement()->getGrade());
+//        if(temp->getRight())
+//            temp->setSumOfGrades(node->getElement()->getGrade() + temp->getRight()->getSumOfGrades()+temp->getElement()->getGrade());
+//
+//        }
         return temp;
     }
-
-
+    int sizeOfSubTree(treeNode* node){
+        int size = 0;
+        if(!node)
+            return 0;
+        if(node)
+            size ++;
+        if(node->getLeft())
+            size += node->getLeft()->getSizeOfSubtree();
+        if(node->getRight())
+            size += node->getRight()->getSizeOfSubtree();
+       return size;
+    }
+    int sumOfGrades(treeNode* node){
+        int sumGrades = 0;
+        if(!node)
+            return 0;
+        if(node)
+            sumGrades += node->getElement()->getGrade();
+        if(node->getLeft())
+            sumGrades += node->getLeft()->getSumOfGrades();
+        if(node->getRight())
+            sumGrades += node->getRight()->getSumOfGrades();
+        return sumGrades;
+    }
     int getBalanceFactor(treeNode* node){
         if(!node)
             return 0;
@@ -384,27 +409,29 @@ public:
             return;
         updateRanksSums(node->getLeft());
         updateRanksSums(node->getRight());
-        ///no sons
-        if(!node->getLeft() && !node->getRight()){
-            node->setSumOfGrades(node->getElement()->getGrade());
-            node->setSizeOfSubtree(1);
-        }
-        ///right son
-        if(!node->getLeft() && node->getRight()){
-            node->setSumOfGrades(node->getElement()->getGrade() + node->getRight()->getSumOfGrades());
-            node->setSizeOfSubtree(1 + node->getRight()->getSizeOfSubtree());
-        }
-        ///left son
-        if(node->getLeft() && !node->getRight()){
-            node->setSumOfGrades(node->getElement()->getGrade() + node->getLeft()->getSumOfGrades());
-            node->setSizeOfSubtree(1 + node->getLeft()->getSizeOfSubtree());
-        }
-        ///both sons
-        if(node->getLeft() && node->getRight()) {
-            node->setSumOfGrades(
-                    node->getElement()->getGrade() + node->getLeft()->getSumOfGrades() + node->getRight()->getSumOfGrades());
-            node->setSizeOfSubtree(1 + node->getRight()->getSizeOfSubtree() + node->getLeft()->getSizeOfSubtree());
-        }
+        node->setSumOfGrades(node->getElement()->getGrade() + sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()));
+        node->setSizeOfSubtree(1 + sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()));
+//        ///no sons
+//        if(!node->getLeft() && !node->getRight()){
+//            node->setSumOfGrades(node->getElement()->getGrade());
+//            node->setSizeOfSubtree(1);
+//        }
+//        ///right son
+//        if(!node->getLeft() && node->getRight()){
+//            node->setSumOfGrades(node->getElement()->getGrade() + sumOfGrades(node->getRight()));
+//            node->setSizeOfSubtree(1 + sizeOfSubTree(node->getRight()));
+//        }
+//        ///left son
+//        if(node->getLeft() && !node->getRight()){
+//            node->setSumOfGrades(node->getElement()->getGrade() + sumOfGrades(node->getLeft()));
+//            node->setSizeOfSubtree(1 + sizeOfSubTree(node->getLeft()));
+//        }
+//        ///both sons
+//        if(node->getLeft() && node->getRight()) {
+//            node->setSumOfGrades(
+//                    node->getElement()->getGrade() + sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()));
+//            node->setSizeOfSubtree(1 + sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()));
+//        }
 
     }
 
@@ -503,13 +530,13 @@ public:
     Employee* getSumByIndex(treeNode* node, int index, int* sum){
         if(!node)
             return nullptr;
-        if(node->getLeft() && node->getLeft()->getSizeOfSubtree() + 1 == index) {
-            *sum += node->getLeft()->getSumOfGrades();
+        if(sizeOfSubTree(node->getLeft()) + 1 == index) {
+            *sum += sumOfGrades(node->getLeft());
             return node->getElement();
         }
-        if(node->getLeft() && node->getLeft()->getSizeOfSubtree() + 1 < index) {
-            *sum += node->getLeft()->getSumOfGrades() + node->getElement()->getGrade();
-            return getSumByIndex(node->getRight(), index - node->getLeft()->getSizeOfSubtree() - 1, sum);
+        if(sizeOfSubTree(node->getLeft()) + 1 < index) {
+            *sum += sumOfGrades(node->getLeft()) + node->getElement()->getGrade();
+            return getSumByIndex(node->getRight(), index - (sizeOfSubTree(node->getLeft()) + 1), sum);
         }
         else
             return getSumByIndex(node->getLeft(), index, sum);
@@ -542,7 +569,7 @@ public:
     int findIndexAboveAux(treeNode* node, int salary){
         int sum =0, last_sum = 0;
         findIndexAbove(node,salary,&sum, &last_sum);
-        if(findEmployeeByIndexAux(node,sum) && findEmployeeByIndexAux(node,sum)->getSalary() < salary)
+        if(findEmployeeByIndexAux(node,sum)->getSalary() < salary)
             return last_sum;
         return sum;
     }
@@ -550,19 +577,16 @@ public:
     void findIndexAbove(treeNode* node, int salary, int* sum, int* last_sum){
         if(!node)
             return;
-        if(node->getElement()->getSalary() > salary) {
+        if(node->getElement()->getSalary() >= salary) {
             if(!node->getLeft()){//smallest sal is in range
-                *sum += 1;
+//                (*sum)++;
                 return;
             }
-            *last_sum = *sum;
+            *last_sum = sizeOfSubTree(node->getLeft());
             findIndexAbove(node->getLeft(), salary, sum, last_sum);
         }
-        if(node->getElement()->getSalary() <= salary){
-            if(node->getLeft())
-                *sum += node->getLeft()->getSizeOfSubtree() + 1;
-            else
-                *sum += 1;
+        if(node->getElement()->getSalary() < salary){
+                *sum += sizeOfSubTree(node->getLeft()) + 1;
             findIndexAbove(node->getRight(),salary, sum, last_sum);
         }
     }
@@ -580,10 +604,7 @@ public:
         if(node->getElement()->getSalary() > salary)
             findIndexBelow(node->getLeft(),salary,sum);
         if(node->getElement()->getSalary() <= salary){
-            if(node->getLeft())
-                *sum += node->getLeft()->getSizeOfSubtree() + 1;
-            else
-                *sum += 1;
+            *sum += sizeOfSubTree(node->getLeft()) + 1;
             findIndexBelow(node->getRight(),salary, sum);
         }
     }

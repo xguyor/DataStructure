@@ -72,15 +72,23 @@ StatusType EmployeeManager::acquireCompany(void *DS, int AcquireID, int TargetID
         if(target_company->getEmployeesWithSalary() > 0 && acquirer_company->getEmployeesWithSalary() >0) {
             acquirer_company->setRoot(acquirer_tree->arrayToTreeShell(
                     acquirer_tree->mergedEmployeesArray(acquirer_tree->getRoot(), target_tree->getRoot(),
-                                                        acquirer_employee_num,
-                                                        target_employee_num), 0,
-                    acquirer_employee_num + target_employee_num - 1));
+                                                        acquirer_company->getEmployeesWithSalary(),
+                                                        target_company->getEmployeesWithSalary()), 0,
+                    acquirer_company->getEmployeesWithSalary() + target_company->getEmployeesWithSalary() - 1));
             acquirer_tree = acquirer_company->getEmployeesTree();
-            acquirer_tree->setSize(acquirer_employee_num + target_employee_num);
+            acquirer_tree->setSize(acquirer_company->getEmployeesWithSalary() + target_company->getEmployeesWithSalary());
             acquirer_tree->updateRanksSums(acquirer_tree->getRoot());
+
+
+
+            target_company->setRoot(nullptr);
         }
         if(target_company->getEmployeesWithSalary() > 0 && acquirer_company->getEmployeesWithSalary() == 0) {
             acquirer_company->setRoot(target_tree->getRoot());
+
+
+
+            target_company->setRoot(nullptr);
         }
         acquirer_company->getEmployeesTable().copyTable(acquirer_company->getEmployeesTable(),target_company->getEmployeesTable(),target_company->getEmployeesTable().getTableSize(),acquirer_company);
         ///update values
@@ -190,22 +198,25 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
     if(higherSalary < 0 || lowerSalary < 0 || lowerSalary > higherSalary ||
                                       CompanyID > companies.getNumOfCompanies() || CompanyID < 0)
         return INVALID_INPUT;
-    int h_sal = 0, l_sal = 0;
+    int h_sal = 0, l_sal = 0, num_in_range = 0, sum_in_range = 0;
+    if(CompanyID == 0 && lowerSalary == 205 && higherSalary == 414)
+        int jjjj = 0;
     if(CompanyID > 0){
         Company* company = companies.find(CompanyID);
         if(company->getEmployeesWithSalary() > 0) {
             h_sal = company->getEmployeesTree()->getMaxElement(company->getEmployeesTree()->getRoot())->getSalary();
             l_sal = company->getEmployeesTree()->getMinElement(company->getEmployeesTree()->getRoot())->getSalary();
+            int high_index = company->findIndexBelowCompany(higherSalary);
+            int low_index = company->findIndexAboveCompany(lowerSalary);
+            num_in_range = high_index - low_index + 1;
+            int grade_of_highest_in_range = company->gradeByIndexCompany(high_index);
+            int sum1 = company->sumByIndexCompany(low_index);
+            int sum2 = company->sumByIndexCompany(high_index) + grade_of_highest_in_range;
+            sum_in_range = sum2 - sum1;
         }
         if(!((higherSalary >= l_sal && lowerSalary <= h_sal) || (lowerSalary == 0 && num_of_employees_no_salary > 0)))
             return FAILURE;
-        int high_index = company->findIndexBelowCompany(higherSalary);
-        int low_index = company->findIndexAboveCompany(lowerSalary);
-        int num_in_range = high_index - low_index + 1;
-        int grade_of_highest_in_range = company->gradeByIndexCompany(high_index);
-        int sum1 = company->sumByIndexCompany(low_index);
-        int sum2 = company->sumByIndexCompany(high_index) + grade_of_highest_in_range;
-        int sum_in_range = sum2 - sum1;
+
         if(lowerSalary == 0){
             num_in_range += company->getEmployeesNoSalary();
             sum_in_range += company->getSumOfGradesNoSalary();
@@ -215,17 +226,21 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
         return SUCCESS;
     }
     else{//company == 0
-        int h_sal = employees_tree.getMaxElement(employees_tree.getRoot())->getSalary();
-        int l_sal = employees_tree.getMinElement(employees_tree.getRoot())->getSalary();
-        if(!((higherSalary >= l_sal && lowerSalary <= h_sal) || (lowerSalary == 0 && num_of_employees_no_salary > 0)))
-            return FAILURE;
-        int high_index = employees_tree.findIndexBelowAux(employees_tree.getRoot(), higherSalary);
-        int low_index = employees_tree.findIndexAboveAux(employees_tree.getRoot(), lowerSalary);
-        int num_in_range = high_index - low_index + 1;
-        int grade_of_highest_in_range = employees_tree.gradeByIndexAux(employees_tree.getRoot(), high_index);
-        int sum1 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), low_index);
-        int sum2 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), high_index) + grade_of_highest_in_range;
-        int sum_in_range = sum2 - sum1;
+        int h_sal = 0, l_sal = 0, num_in_range = 0, sum_in_range = 0;
+        if(num_of_employees_with_salary > 0) {
+            h_sal = employees_tree.getMaxElement(employees_tree.getRoot())->getSalary();
+            l_sal = employees_tree.getMinElement(employees_tree.getRoot())->getSalary();
+            if (!((higherSalary >= l_sal && lowerSalary <= h_sal) ||
+                  (lowerSalary == 0 && num_of_employees_no_salary > 0)))
+                return FAILURE;
+            int high_index = employees_tree.findIndexBelowAux(employees_tree.getRoot(), higherSalary);
+            int low_index = employees_tree.findIndexAboveAux(employees_tree.getRoot(), lowerSalary);
+            num_in_range = high_index - low_index + 1;
+            int grade_of_highest_in_range = employees_tree.gradeByIndexAux(employees_tree.getRoot(), high_index);
+            int sum1 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), low_index);
+            int sum2 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), high_index) + grade_of_highest_in_range;
+            sum_in_range = sum2 - sum1;
+        }
         if(lowerSalary == 0){
             num_in_range += num_of_employees_no_salary;
             sum_in_range += sum_of_grades_no_salary;
