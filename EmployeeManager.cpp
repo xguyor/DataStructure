@@ -61,13 +61,15 @@ StatusType EmployeeManager::acquireCompany(void *DS, int AcquireID, int TargetID
     try{
         Company* acquirer_company = companies.find(AcquireID);
         Company* target_company = companies.find(TargetID);
+
+        if(acquirer_company->getId() == companies.find(16)->getId() || target_company->getId() == companies.find(16)->getId())
+            int xguor = 100;
         ///case with same owners
         if(acquirer_company->getId() == target_company->getId())
             return SUCCESS;
         RankSumAvlTree* acquirer_tree = acquirer_company->getEmployeesTree();
         RankSumAvlTree* target_tree = target_company->getEmployeesTree();
-        int acquirer_employee_num = acquirer_company->getEmployeesNoSalary() + acquirer_company->getEmployeesWithSalary();
-        int target_employee_num = target_company->getEmployeesNoSalary() + target_company->getEmployeesWithSalary();
+
         ///merge trees
         if(target_company->getEmployeesWithSalary() > 0 && acquirer_company->getEmployeesWithSalary() >0) {
             acquirer_company->setRoot(acquirer_tree->arrayToTreeShell(
@@ -79,14 +81,10 @@ StatusType EmployeeManager::acquireCompany(void *DS, int AcquireID, int TargetID
             acquirer_tree->setSize(acquirer_company->getEmployeesWithSalary() + target_company->getEmployeesWithSalary());
             acquirer_tree->updateRanksSums(acquirer_tree->getRoot());
 
-
-
             target_company->setRoot(nullptr);
         }
         if(target_company->getEmployeesWithSalary() > 0 && acquirer_company->getEmployeesWithSalary() == 0) {
             acquirer_company->setRoot(target_tree->getRoot());
-
-
 
             target_company->setRoot(nullptr);
         }
@@ -96,7 +94,7 @@ StatusType EmployeeManager::acquireCompany(void *DS, int AcquireID, int TargetID
         acquirer_company->increaseSumOfGradesNoSalary(target_company->getSumOfGradesNoSalary());
         acquirer_company->increaseNumOfEmployeesNoSalary(target_company->getEmployeesNoSalary());
         acquirer_company->increaseNumOfEmployeesWithSalary(target_company->getEmployeesWithSalary());
-        acquirer_tree->setSize(target_employee_num + acquirer_employee_num);
+        acquirer_tree->setSize(target_company->getEmployeesWithSalary() + acquirer_company->getEmployeesWithSalary());
     }
     catch(std::bad_alloc& e){
         return ALLOCATION_ERROR;
@@ -116,6 +114,7 @@ StatusType EmployeeManager::employeeSalaryIncrease(void *DS, int EmployeeID, int
             employee->increaseSalary(SalaryIncrease);
             employees_tree.insert(employee, key);
             employee->getCompany()->insertEmployeeToTree(employee, key);
+
             //updates of nums sheesh
             num_of_employees_no_salary--;
             num_of_employees_with_salary++;
@@ -144,23 +143,27 @@ StatusType EmployeeManager::employeeSalaryIncrease(void *DS, int EmployeeID, int
 StatusType EmployeeManager::promoteEmployee(void *DS, int EmployeeID, int BumpGrade) {
     if(EmployeeID<= 0)
         return INVALID_INPUT;
+    Employee *e = employees_hash.find(EmployeeID);
+    if (!e)
+        return FAILURE;
     if(BumpGrade > 0) {
-        Employee *e = employees_hash.find(EmployeeID);
-        if (!e)
-            return FAILURE;
         try {
-            SortBySalary old_key(e->getSalary(), EmployeeID, e->getGrade());
-            employees_tree.remove(old_key);
-            e->getCompany()->removeEmployeeFromTree(old_key);
-            e->bumpGrade(BumpGrade);
-            SortBySalary new_key(e->getSalary(), EmployeeID, e->getGrade());
-            employees_tree.insert(e, new_key);
-            e->getCompany()->insertEmployeeToTree(e, new_key);
             if (e->getSalary() == 0) {
+                e->bumpGrade(BumpGrade);
                 sum_of_grades_no_salary += BumpGrade;
                 e->getCompany()->increaseSumOfGradesNoSalary(BumpGrade);
+                return SUCCESS;
             }
-            return SUCCESS;
+            else {
+                SortBySalary old_key(e->getSalary(), EmployeeID, e->getGrade());
+                employees_tree.remove(old_key);
+                e->getCompany()->removeEmployeeFromTree(old_key);
+                e->bumpGrade(BumpGrade);
+                SortBySalary new_key(e->getSalary(), EmployeeID, e->getGrade());
+                employees_tree.insert(e, new_key);
+                e->getCompany()->insertEmployeeToTree(e, new_key);
+                return SUCCESS;
+            }
         }
         catch (std::bad_alloc &e) {
             return ALLOCATION_ERROR;
@@ -176,7 +179,8 @@ StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int
         Company *company = companies.find(CompanyID);
         if(company->getEmployeesWithSalary() < m)
             return FAILURE;
-        int total_employees = company->getEmployeesWithSalary() + company->getEmployeesNoSalary();
+//        int total_employees = company->getEmployeesWithSalary() + company->getEmployeesNoSalary();
+        int total_employees = company->getEmployeesWithSalary();
         int sum_smaller = company->getSumByIndexCompany( total_employees - m + 1);
         int sum_total = company->getEmployeesTree()->getRoot()->getSumOfGrades();
         printf("SumOfBumpGradeBetweenTopWorkersByGroup: %d\n", sum_total - sum_smaller);
@@ -185,8 +189,10 @@ StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int
     else{
         if(num_of_employees_with_salary < m)
             return FAILURE;
-        int total_employees = num_of_employees_no_salary + num_of_employees_with_salary;
-        int sum_smaller = employees_tree.getSumByIndexAux(employees_tree.getRoot(), total_employees - m + 1);
+//        int total_employees = num_of_employees_no_salary + num_of_employees_with_salary;
+        int total_employees = num_of_employees_with_salary;
+
+        int sum_smaller = employees_tree.getSumByIndexAux(employees_tree.getRoot(), total_employees - m);
         int sum_total = employees_tree.getRoot()->getSumOfGrades();
         printf("SumOfBumpGradeBetweenTopWorkersByGroup: %d\n", sum_total - sum_smaller);
         return SUCCESS;
@@ -199,22 +205,24 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
                                       CompanyID > companies.getNumOfCompanies() || CompanyID < 0)
         return INVALID_INPUT;
     int h_sal = 0, l_sal = 0, num_in_range = 0, sum_in_range = 0;
-    if(CompanyID == 0 && lowerSalary == 205 && higherSalary == 414)
-        int jjjj = 0;
     if(CompanyID > 0){
         Company* company = companies.find(CompanyID);
-        if(company->getEmployeesWithSalary() > 0) {
+        if(company->getEmployeesWithSalary() > 0 && higherSalary > 0) {
             h_sal = company->getEmployeesTree()->getMaxElement(company->getEmployeesTree()->getRoot())->getSalary();
             l_sal = company->getEmployeesTree()->getMinElement(company->getEmployeesTree()->getRoot())->getSalary();
-            int high_index = company->findIndexBelowCompany(higherSalary);
-            int low_index = company->findIndexAboveCompany(lowerSalary);
-            num_in_range = high_index - low_index + 1;
-            int grade_of_highest_in_range = company->gradeByIndexCompany(high_index);
-            int sum1 = company->sumByIndexCompany(low_index);
-            int sum2 = company->sumByIndexCompany(high_index) + grade_of_highest_in_range;
-            sum_in_range = sum2 - sum1;
+            if(higherSalary >= l_sal && higherSalary <= h_sal || lowerSalary >= l_sal && lowerSalary <= h_sal) {
+                int high_index = company->findIndexBelowCompany(higherSalary);
+                int low_index = company->findIndexAboveCompany(lowerSalary);
+                if(low_index <= high_index) {
+                    num_in_range = high_index - low_index + 1;
+                    int grade_of_highest_in_range = company->gradeByIndexCompany(high_index);
+                    int sum1 = company->sumByIndexCompany(low_index);
+                    int sum2 = company->sumByIndexCompany(high_index) + grade_of_highest_in_range;
+                    sum_in_range = sum2 - sum1;
+                }
+            }
         }
-        if(!((higherSalary >= l_sal && lowerSalary <= h_sal) || (lowerSalary == 0 && num_of_employees_no_salary > 0)))
+        if(lowerSalary == 0 && num_in_range == 0 && company->getEmployeesNoSalary() == 0)
             return FAILURE;
 
         if(lowerSalary == 0){
@@ -222,30 +230,37 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
             sum_in_range += company->getSumOfGradesNoSalary();
         }
         double avg = ((double)sum_in_range)/((double )num_in_range);
+//        (int)(3.25*10.0 + 0.5)
+        avg = ((double)((int)(avg*10.0 + 0.5)))/10.0;
         printf("AverageBumpGradeBetweenSalaryByGroup: %.1f\n", avg);
         return SUCCESS;
     }
     else{//company == 0
         int h_sal = 0, l_sal = 0, num_in_range = 0, sum_in_range = 0;
-        if(num_of_employees_with_salary > 0) {
+        if(num_of_employees_with_salary > 0 && higherSalary > 0) {
             h_sal = employees_tree.getMaxElement(employees_tree.getRoot())->getSalary();
             l_sal = employees_tree.getMinElement(employees_tree.getRoot())->getSalary();
             if (!((higherSalary >= l_sal && lowerSalary <= h_sal) ||
                   (lowerSalary == 0 && num_of_employees_no_salary > 0)))
                 return FAILURE;
-            int high_index = employees_tree.findIndexBelowAux(employees_tree.getRoot(), higherSalary);
-            int low_index = employees_tree.findIndexAboveAux(employees_tree.getRoot(), lowerSalary);
-            num_in_range = high_index - low_index + 1;
-            int grade_of_highest_in_range = employees_tree.gradeByIndexAux(employees_tree.getRoot(), high_index);
-            int sum1 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), low_index);
-            int sum2 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), high_index) + grade_of_highest_in_range;
-            sum_in_range = sum2 - sum1;
+            if(higherSalary >= l_sal && higherSalary <= h_sal || lowerSalary >= l_sal && lowerSalary <= h_sal) {
+
+                int high_index = employees_tree.findIndexBelowAux(employees_tree.getRoot(), higherSalary);
+                int low_index = employees_tree.findIndexAboveAux(employees_tree.getRoot(), lowerSalary);
+                num_in_range = high_index - low_index + 1;
+                int grade_of_highest_in_range = employees_tree.gradeByIndexAux(employees_tree.getRoot(), high_index);
+                int sum1 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), low_index);
+                int sum2 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), high_index) + grade_of_highest_in_range;
+                sum_in_range = sum2 - sum1;
+            }
         }
         if(lowerSalary == 0){
             num_in_range += num_of_employees_no_salary;
             sum_in_range += sum_of_grades_no_salary;
         }
-        printf("AverageBumpGradeBetweenSalaryByGroup: %.1f\n",((double)sum_in_range)/((double )num_in_range));
+        double avgx = ((double)sum_in_range)/((double )num_in_range);
+        avgx = ((double)((int)(avgx*10.0 + 0.5)))/10.0;
+        printf("AverageBumpGradeBetweenSalaryByGroup: %.1f\n", avgx);
         return SUCCESS;
     }
 }

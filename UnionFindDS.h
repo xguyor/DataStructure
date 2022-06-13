@@ -59,15 +59,16 @@ public:
             node1->head->group_size += node2->head->group_size;
             node2->head->group_size = 0;
             node1->head->group_value += node2->head->group_value * factor;
-            node2->diff += node1->head->group_value - node2->head->group_value;
+            node2->diff += node1->head->group_value - node1->diff - node2->head->group_value;///change += to =
             node2->head = nullptr;
         }
         else{
             node1->head->group_size += node2->head->group_size;
             node2->head->group_size = 0;
             node1->head->group_value += node2->head->group_value * factor;
-            node2->diff += node1->head->group_value - node2->head->group_value;
-            node1->diff -= node1->head->group_value - node2->head->group_value;
+            node2->diff += node1->head->group_value - node2->head->group_value;///+=
+//            node1->diff -= node1->head->group_value - node2->head->group_value;
+            node1->diff -= node2->diff;///new
             node1->daddy = node2;
             node2->head = node1->head;
             node1->head = nullptr;
@@ -77,14 +78,21 @@ public:
     Company* find(int id){
         Node* temp_node = companies[id];
         Node* root = getRoot(id);
-        double temp_diff = temp_node->diff;
+        double sum_diff = temp_node->diff;
         while(temp_node->daddy && temp_node->daddy != root){
-            temp_diff += temp_node->diff;
+            sum_diff += temp_node->daddy->diff;
+            temp_node = temp_node->daddy;
+        }
+        temp_node = companies[id];
+        double double_double_temp_giannis_diff;
+        while(temp_node->daddy && temp_node->daddy != root){
+            double_double_temp_giannis_diff = temp_node->diff;
+            temp_node->diff = sum_diff;
+            sum_diff -= double_double_temp_giannis_diff;
             Node* temp_daddy = temp_node->daddy;
             temp_node->daddy = root;
             temp_node = temp_daddy;
         }
-        companies[id]->diff = temp_diff;
         return root->head->head_company;
     }
 

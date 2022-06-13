@@ -65,8 +65,9 @@ public:
     void setSize(int to_set){ size = to_set;}
 
     bool insert(Employee* element, SortBySalary& key){
-        increaseRankSums(tree_root,element,key);
+//        increaseRankSums(tree_root,element,key);
         treeNode* temp = insertUtility(tree_root,element,key);
+//        updateRanksSums(temp);
         if(temp){
             size++;
             tree_root = temp;
@@ -79,8 +80,10 @@ public:
     bool remove(SortBySalary& key){
         if(!(find(tree_root, key)))
             return false;
-        decreaseRankSums2(tree_root,key);
+//        decreaseRankSums2(tree_root,key);
         treeNode* temp = removeUtility(tree_root,key);
+//        updateRanksSums(temp);
+
         if(temp) {
             size--;
             tree_root = temp;
@@ -248,6 +251,8 @@ public:
     // function for rotations when inserting new node
     treeNode* balancer(treeNode* node, SortBySalary& key){
         node->setHeight(1 + max(height(node->getLeft()),height(node->getRight())));
+        node->setSizeOfSubtree(sizeOfSubTree(node->getLeft()) + sizeOfSubTree(node->getRight()) + 1);
+        node->setSumOfGrades(sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()) + node->getElement()->getGrade());
         int balanceFactor = getBalanceFactor(node);
         if(balanceFactor > 1){
             if(key < node->getLeft()->getKey())
@@ -332,6 +337,8 @@ public:
 
         // updating height and perfofrming rotations on tree
         node->setHeight(1+ max(height(node->getLeft()), height(node->getRight())));
+        node->setSizeOfSubtree(sizeOfSubTree(node->getLeft()) + sizeOfSubTree(node->getRight()) + 1);
+        node->setSumOfGrades(sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()) + node->getElement()->getGrade());
         int b_factor = getBalanceFactor(node);
         if(b_factor > 1){
             if(getBalanceFactor(node->getLeft()) >= 0){
@@ -510,8 +517,10 @@ public:
         }
         else
             return;
-        node->increaseSizeOfSubtree();
-        node->increaseSumOfGrades(element->getGrade());
+//        node->increaseSizeOfSubtree();
+//        node->increaseSumOfGrades(element->getGrade());
+        node->setSizeOfSubtree(sizeOfSubTree(node->getLeft()) + sizeOfSubTree(node->getRight()) + 1);
+        node->setSumOfGrades(sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()) + node->getElement()->getGrade());
     }
 
     void decreaseRankSums2(treeNode* node,SortBySalary& key){
@@ -523,8 +532,10 @@ public:
         else if(key > node->getKey()) {
             decreaseRankSums2(node->getRight(),key);
         }
-        node->decreaseSizeOfSubtree();
-        node->decreaseSumOfGrades(key.getGrade());
+//        node->decreaseSizeOfSubtree();
+//        node->decreaseSumOfGrades(key.getGrade());
+        node->setSizeOfSubtree(sizeOfSubTree(node->getLeft()) + sizeOfSubTree(node->getRight()) + 1);
+        node->setSumOfGrades(sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()) + node->getElement()->getGrade());
     }
 
     Employee* getSumByIndex(treeNode* node, int index, int* sum){
@@ -554,11 +565,11 @@ public:
     Employee* findEmployeeByIndex(treeNode* node, int index, Employee* employee){
         if(!node)
             return employee;
-        if(node && node->getLeft() && node->getLeft()->getSizeOfSubtree() + 1 == index)
+        if(sizeOfSubTree(node->getLeft()) + 1 == index)
             return node->getElement();
-        if(node && node->getLeft() && node->getLeft()->getSizeOfSubtree() + 1 < index) {
+        if(sizeOfSubTree(node->getLeft()) + 1 < index) {
             employee = node->getElement();
-            return findEmployeeByIndex(node->getRight(), index - node->getLeft()->getSizeOfSubtree() - 1,employee);
+            return findEmployeeByIndex(node->getRight(), index - (sizeOfSubTree(node->getLeft()) + 1),employee);
         }
         else {
             employee = node->getElement();
@@ -579,10 +590,10 @@ public:
             return;
         if(node->getElement()->getSalary() >= salary) {
             if(!node->getLeft()){//smallest sal is in range
-//                (*sum)++;
+                (*sum)++;
                 return;
             }
-            *last_sum = sizeOfSubTree(node->getLeft());
+            *last_sum = *sum + sizeOfSubTree(node->getLeft()) + 1;
             findIndexAbove(node->getLeft(), salary, sum, last_sum);
         }
         if(node->getElement()->getSalary() < salary){
@@ -611,12 +622,12 @@ public:
 
     int gradeByIndex(treeNode* node, int index, int* grade){
         if(!node)
-            return *grade;
-        if(node->getLeft() && node->getLeft()->getSizeOfSubtree() + 1 == index)
+            return -1;
+        if(sizeOfSubTree(node->getLeft()) + 1 == index)
             return node->getElement()->getGrade();
-        if(node->getLeft() && node->getLeft()->getSizeOfSubtree() + 1 < index) {
+        if(sizeOfSubTree(node->getLeft()) + 1 < index) {
             *grade = node->getElement()->getGrade();
-            return gradeByIndex(node->getRight(), index - node->getLeft()->getSizeOfSubtree() - 1, grade);
+            return gradeByIndex(node->getRight(), index - (sizeOfSubTree(node->getLeft()) + 1), grade);
         }
         else {
             *grade = node->getElement()->getGrade();
