@@ -20,7 +20,7 @@ public:
                                                         employees() , employees_table(){}
     ~Company() = default;
     void setRoot(RankSumAvlTree::treeNode* root){employees.setRoot(root);}
-    void setTable(DynamicHashTable& table) {employees_table = table;}
+    void resetTable() {employees_table.setTableToNull();}
     int getId() const {return id;}
     int getEmployeesNoSalary() const {return num_of_employees_no_salary; }
     int getEmployeesWithSalary() const { return num_of_employees_with_salary;}
@@ -31,7 +31,7 @@ public:
     void removeEmployeeFromTree(SortBySalary& key){ employees.remove(key);}
     void insertEmployeeToTree(Employee* employee, SortBySalary& key) { employees.insert(employee,key);}
     RankSumAvlTree* getEmployeesTree() {return &employees;}
-    DynamicHashTable& getEmployeesTable() { return employees_table;}
+    DynamicHashTable* getEmployeesTable() {return &employees_table;}
     void insertToEmployeeTable(Employee* employee) { employees_table.insert(employee);}
     void removeFromEmployeeTable(int id) {employees_table.remove(id);}
     int getSumByIndexCompany(int index)  {return employees.getSumByIndexAux(employees.getRoot(), index);}
@@ -39,6 +39,7 @@ public:
     int findIndexAboveCompany(int salary) {return employees.findIndexAboveAux(employees.getRoot(), salary);}
     int gradeByIndexCompany(int index)  {return employees.gradeByIndexAux(employees.getRoot(),index);}
     int sumByIndexCompany(int index) {return employees.getSumByIndexAux(employees.getRoot(),index);}
+    void deleteTable() {employees_table.destoryTable(employees_table.getTable());}
 
 
 };

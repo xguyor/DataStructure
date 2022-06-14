@@ -59,16 +59,15 @@ public:
             node1->head->group_size += node2->head->group_size;
             node2->head->group_size = 0;
             node1->head->group_value += node2->head->group_value * factor;
-            node2->diff += node1->head->group_value - node1->diff - node2->head->group_value;///change += to =
+            node2->diff += node1->head->group_value - node1->diff - node2->head->group_value;
             node2->head = nullptr;
         }
         else{
             node1->head->group_size += node2->head->group_size;
             node2->head->group_size = 0;
             node1->head->group_value += node2->head->group_value * factor;
-            node2->diff += node1->head->group_value - node2->head->group_value;///+=
-//            node1->diff -= node1->head->group_value - node2->head->group_value;
-            node1->diff -= node2->diff;///new
+            node2->diff += node1->head->group_value - node2->head->group_value;
+            node1->diff -= node2->diff;
             node1->daddy = node2;
             node2->head = node1->head;
             node1->head = nullptr;
@@ -102,30 +101,24 @@ public:
             root = root->daddy;
         return root;
     }
-    void print(){
-        for(int i=1; i<=num_of_companies;i++){
-            if(companies[i]->daddy != nullptr)
-                std::cout<<"i am " << i << "and my daddy is " <<  companies[i]->daddy->company->getId() << std::endl;
-            else
-                std::cout << "i am" << i << "and i have no daddy" << std::endl;
-        }
-    }
+
 
     double davaiValue(int company_id){
         Node* node = companies[company_id];
-        double sum = 0;
-        while(!node->head) {
-            sum += node->diff;
-            node = node->daddy;
-        }
-        sum += node->diff;
-        return node->head->group_value - sum;
+        find(company_id);
+        if(node->daddy)
+            return node->daddy->head->group_value - (node->daddy->diff + node->diff);
+        else
+            return node->head->group_value - node->diff;
     }
 
     void destroy(){
         for(int i=1;i<=num_of_companies;i++){
-            if(companies[i]->company->getEmployeesTree())
-                companies[i]->company->getEmployeesTree()->destroyWithoutElement(companies[i]->company->getEmployeesTree()->getRoot());
+            if(companies[i]->company->getEmployeesTree()) {
+                companies[i]->company->getEmployeesTree()->destroyWithoutElement(
+                        companies[i]->company->getEmployeesTree()->getRoot());
+            }
+            companies[i]->company->deleteTable();
             delete companies[i]->company;
             companies[i]->daddy = nullptr;
             companies[i]->head = nullptr;
@@ -134,6 +127,8 @@ public:
             groups[i]->root= nullptr;
             delete groups[i];
         }
+        delete []groups;
+        delete []companies;
     }
 };
 

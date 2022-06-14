@@ -65,9 +65,7 @@ public:
     void setSize(int to_set){ size = to_set;}
 
     bool insert(Employee* element, SortBySalary& key){
-//        increaseRankSums(tree_root,element,key);
         treeNode* temp = insertUtility(tree_root,element,key);
-//        updateRanksSums(temp);
         if(temp){
             size++;
             tree_root = temp;
@@ -80,9 +78,7 @@ public:
     bool remove(SortBySalary& key){
         if(!(find(tree_root, key)))
             return false;
-//        decreaseRankSums2(tree_root,key);
         treeNode* temp = removeUtility(tree_root,key);
-//        updateRanksSums(temp);
 
         if(temp) {
             size--;
@@ -153,8 +149,6 @@ public:
         temp->setRight(node);
         node->setHeight(max(height(node->getLeft()),height(node->getRight())) + 1);
         temp->setHeight(max(height(temp->getLeft()), height(node) + 1));
-
-//        increaseRankSums(node,node->getElement(),node->getKey());
         ///guy ll
         node->setSizeOfSubtree(sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()) + 1);
         node->setSumOfGrades(sumOfGrades(node->getRight()) + sumOfGrades(node->getLeft()) + node->getElement()->getGrade());
@@ -169,38 +163,11 @@ public:
         temp->setLeft(node);
         node->setHeight(max(height(node->getLeft()),height(node->getRight())) + 1);
         temp->setHeight(max(height(node->getRight()),height(node)) + 1);
-//
-//        increaseRankSums(node,node->getElement(),node->getKey());
         ///guy  rr
         node->setSizeOfSubtree(sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()) + 1);
         node->setSumOfGrades(sumOfGrades(node->getRight()) + sumOfGrades(node->getLeft()) + node->getElement()->getGrade());
         temp->setSizeOfSubtree(sizeOfSubTree(temp->getLeft()) + sizeOfSubTree(temp->getRight()) + 1);
         temp->setSumOfGrades(sumOfGrades(temp->getLeft()) + sumOfGrades(temp->getRight()) + temp->getElement()->getGrade());
-
-
-//        if(node->getLeft() && node->getRight()){
-//            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + node->getRight()->getSizeOfSubtree() + 1);
-//            temp->setSizeOfSubtree( temp->getRight()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
-//            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getRight()->getSumOfGrades() + node->getElement()->getGrade());
-//            temp->setSumOfGrades(temp->getRight()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-//            return temp;
-//        }
-//        if(node->getLeft() && !node->getRight()){
-//            node->setSizeOfSubtree(node->getLeft()->getSizeOfSubtree() + 1);
-//            temp->setSizeOfSubtree(temp->getRight()->getSizeOfSubtree() + node->getSizeOfSubtree() + 1);
-//            node->setSumOfGrades(node->getLeft()->getSumOfGrades() + node->getElement()->getGrade());
-//            temp->setSumOfGrades(temp->getRight()->getSumOfGrades() + node->getSumOfGrades() + temp->getElement()->getGrade());
-//            return temp;
-//        }
-//        else{
-//            node->setSizeOfSubtree(1);
-//            temp->increaseSizeOfSubtree();
-//            node->setSumOfGrades(node->getElement()->getGrade());
-////            temp->setSumOfGrades(temp->getLeft()->getSumOfGrades() + temp->getRight()->getSumOfGrades()+temp->getElement()->getGrade());
-//        if(temp->getRight())
-//            temp->setSumOfGrades(node->getElement()->getGrade() + temp->getRight()->getSumOfGrades()+temp->getElement()->getGrade());
-//
-//        }
         return temp;
     }
     int sizeOfSubTree(treeNode* node){
@@ -377,24 +344,6 @@ public:
         return node->getElement();
     }
 
-//    void reverseInorderToArray(treeNode* root, RankSumAvlTree::treeNode** array_begin, int size, int* counter){
-
-
-//    }
-//        reverseInorderToArray(root->getLeft(),array_begin, size ,counter);
-//        (*counter)++;
-//        }
-//            return;
-//            (*counter)++;
-//        {
-//        if(*counter >= size - 1)
-//            array_begin[*counter] = root;
-//        if(*counter < size)
-//        reverseInorderToArray(root->getRight(), array_begin,size, counter);
-//            return;
-//        if(root == nullptr)
-
-
 
     void inorderToArray(treeNode* root, RankSumAvlTree::treeNode** array_begin, int size, int* counter){
         if(root == nullptr)
@@ -418,28 +367,6 @@ public:
         updateRanksSums(node->getRight());
         node->setSumOfGrades(node->getElement()->getGrade() + sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()));
         node->setSizeOfSubtree(1 + sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()));
-//        ///no sons
-//        if(!node->getLeft() && !node->getRight()){
-//            node->setSumOfGrades(node->getElement()->getGrade());
-//            node->setSizeOfSubtree(1);
-//        }
-//        ///right son
-//        if(!node->getLeft() && node->getRight()){
-//            node->setSumOfGrades(node->getElement()->getGrade() + sumOfGrades(node->getRight()));
-//            node->setSizeOfSubtree(1 + sizeOfSubTree(node->getRight()));
-//        }
-//        ///left son
-//        if(node->getLeft() && !node->getRight()){
-//            node->setSumOfGrades(node->getElement()->getGrade() + sumOfGrades(node->getLeft()));
-//            node->setSizeOfSubtree(1 + sizeOfSubTree(node->getLeft()));
-//        }
-//        ///both sons
-//        if(node->getLeft() && node->getRight()) {
-//            node->setSumOfGrades(
-//                    node->getElement()->getGrade() + sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()));
-//            node->setSizeOfSubtree(1 + sizeOfSubTree(node->getRight()) + sizeOfSubTree(node->getLeft()));
-//        }
-
     }
 
     treeNode* arrayToTreeShell(RankSumAvlTree::treeNode** array, int start, int end){
@@ -517,8 +444,6 @@ public:
         }
         else
             return;
-//        node->increaseSizeOfSubtree();
-//        node->increaseSumOfGrades(element->getGrade());
         node->setSizeOfSubtree(sizeOfSubTree(node->getLeft()) + sizeOfSubTree(node->getRight()) + 1);
         node->setSumOfGrades(sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()) + node->getElement()->getGrade());
     }
@@ -532,8 +457,6 @@ public:
         else if(key > node->getKey()) {
             decreaseRankSums2(node->getRight(),key);
         }
-//        node->decreaseSizeOfSubtree();
-//        node->decreaseSumOfGrades(key.getGrade());
         node->setSizeOfSubtree(sizeOfSubTree(node->getLeft()) + sizeOfSubTree(node->getRight()) + 1);
         node->setSumOfGrades(sumOfGrades(node->getLeft()) + sumOfGrades(node->getRight()) + node->getElement()->getGrade());
     }
@@ -559,7 +482,8 @@ public:
         return sum;
     }
     Employee* findEmployeeByIndexAux(treeNode* node, int index){
-        Employee* employee = findEmployeeByIndex(node,index,employee);
+        Employee* employee = nullptr;
+        employee = findEmployeeByIndex(node,index,employee);
         return employee;
     }
     Employee* findEmployeeByIndex(treeNode* node, int index, Employee* employee){

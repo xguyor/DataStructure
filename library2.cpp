@@ -61,5 +61,6 @@ StatusType CompanyValue(void *DS, int companyID){
 
 void Quit(void** DS){
     ((EmployeeManager*)(*DS))->quit();
+    delete ((EmployeeManager*)(*DS));
     *DS = nullptr;
 }

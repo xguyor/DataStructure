@@ -16,22 +16,30 @@ public:
         table = new Employee*[1];
         table[0] = nullptr;
     }
-    ~DynamicHashTable(){
-        for(int i=0; i < table_size;i++){
-            table[i] = nullptr;
-        }
+
+    ~DynamicHashTable() = default;
+
+    void destoryTable(Employee** table){
         delete []table;
     }
 
+    void setTableToNull(){
+        table = nullptr;
+    }
+
     int getTableSize() const {return table_size;}
-    Employee** getTable() const {return table;}
+
+    Employee** getTable() {return table;}
 
     void extendTable(){
         int old_table_size = table_size;
-        table_size *= 2;
+        if(table_size == 1)
+            table_size = 3;
+        else
+            table_size = (table_size-1) * 2 + 1;
         //allocate new array and reset
-        Employee** new_table = new Employee*[table_size + 1];
-        for(int i=0;i<table_size;i++){
+        Employee** new_table = new Employee*[table_size];
+        for(int i=0;i<table_size;i++){//
             new_table[i] = nullptr;
         }
         //copy old array to new and reset old array
@@ -45,27 +53,29 @@ public:
 
     void shortenTable(){
         int old_table_size = table_size;
-        table_size /= 2;
-        Employee** new_table = new Employee*[table_size + 1];
-        Employee** temp_table = new Employee*[old_table_size + 1];
-        for(int i=0;i<=table_size;i++) {
+        if(table_size == 3)
+            table_size = 1;
+        else
+            table_size = (table_size -1)/2 + 1;
+        Employee** new_table = new Employee*[table_size];
+        Employee** temp_table = new Employee*[old_table_size];
+        for(int i=0;i<table_size;i++) {//
             new_table[i] = nullptr;
         }
-        for(int i=0; i<=old_table_size;i++) {
+        for(int i=0; i<old_table_size;i++) {//
             temp_table[i] = table[i];
             table[i] = nullptr;
         }
         delete []table;
         table = new_table;
-        for(int i = 0; i< old_table_size; i++){
+        for(int i = 0; i< old_table_size; i++){//
             if(temp_table[i]) {
                 num_of_elements--;
                 insert(temp_table[i]);
                 temp_table[i] = nullptr;
-//                num_of_elements--;
             }
         }
-        delete []temp_table;
+        destoryTable(temp_table);
     }
 
     int findSpotInHash(int id){
@@ -76,7 +86,7 @@ public:
     }
 
     void insert(Employee* employee){
-        if(((num_of_elements + 1) * 4)/3  >= table_size)
+        if(((num_of_elements + 1) * 4)/3  >= table_size - 1)
             extendTable();
         int index = findSpotInHash(employee->getId());
         table[index] = employee;
@@ -87,10 +97,10 @@ public:
         int index = findIndex(id);
         if(index != 0)
             table[index] = nullptr;
-        num_of_elements--;
-        if(num_of_elements<= table_size/4) {
+        if(num_of_elements<= (table_size -1)/4) {
             shortenTable();
         }
+        num_of_elements--;
     }
 
     int findIndex(int id){
@@ -128,4 +138,7 @@ public:
 };
 
 
+
+
 #endif //MIVNE_WET_2_DYNAMICHASHTABLE_H
+
