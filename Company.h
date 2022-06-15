@@ -34,11 +34,11 @@ public:
     DynamicHashTable* getEmployeesTable() {return &employees_table;}
     void insertToEmployeeTable(Employee* employee) { employees_table.insert(employee);}
     void removeFromEmployeeTable(int id) {employees_table.remove(id);}
-    int getSumByIndexCompany(int index)  {return employees.getSumByIndexAux(employees.getRoot(), index);}
+    int getSumByIndexCompany(int index, int* sum_bump)  {return employees.getSumByIndexAux(employees.getRoot(), index,sum_bump);}
     int findIndexBelowCompany(int salary)  {return employees.findIndexBelowAux(employees.getRoot(), salary);}
     int findIndexAboveCompany(int salary) {return employees.findIndexAboveAux(employees.getRoot(), salary);}
     int gradeByIndexCompany(int index)  {return employees.gradeByIndexAux(employees.getRoot(),index);}
-    int sumByIndexCompany(int index) {return employees.getSumByIndexAux(employees.getRoot(),index);}
+//    int sumByIndexCompany(int index) {return employees.getSumByIndexAux(employees.getRoot(),index);}
     void deleteTable() {employees_table.destoryTable(employees_table.getTable());}
 
 

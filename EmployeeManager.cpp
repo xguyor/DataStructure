@@ -174,14 +174,18 @@ StatusType EmployeeManager::promoteEmployee(void *DS, int EmployeeID, int BumpGr
 StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int CompanyID, int m) {
     if (CompanyID < 0 || CompanyID > companies.getNumOfCompanies() || m <= 0)
         return INVALID_INPUT;
+    if(CompanyID == 63 && m ==2)
+        int sss = 0;
     if (CompanyID > 0) {
         Company *company = companies.find(CompanyID);
         if(company->getEmployeesWithSalary() < m)
             return FAILURE;
-        int total_employees = company->getEmployeesWithSalary();
-        int sum_smaller = company->getSumByIndexCompany( total_employees - m + 1);
-        int sum_total = company->getEmployeesTree()->getRoot()->getSumOfGrades();
-        printf("SumOfBumpGradeBetweenTopWorkersByGroup: %d\n", sum_total - sum_smaller);
+//        int sum_smaller = company->getSumByIndexCompany( total_employees - m + 1);
+        int high_sal =  company->getEmployeesTree()->findEmployeeByIndexAux(company->getEmployeesTree()->getRoot(),company->getEmployeesWithSalary())->getSalary();
+        int low_sal = company->getEmployeesTree()->findEmployeeByIndexAux(company->getEmployeesTree()->getRoot(),company->getEmployeesWithSalary()-m+1)->getSalary();
+        int sum = company->getEmployeesTree()->sumInRangeForSum(company->getEmployeesTree()->getRoot(), low_sal,high_sal,m,company->getEmployeesWithSalary());
+
+        printf("SumOfBumpGradeBetweenTopWorkersByGroup: %d\n", sum);
        return SUCCESS;
     }
     else{
@@ -189,19 +193,26 @@ StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int
             return FAILURE;
         int total_employees = num_of_employees_with_salary;
 
-        int sum_smaller = employees_tree.getSumByIndexAux(employees_tree.getRoot(), total_employees - m);
-        int sum_total = employees_tree.getRoot()->getSumOfGrades();
-        printf("SumOfBumpGradeBetweenTopWorkersByGroup: %d\n", sum_total - sum_smaller);
+//        int sum_smaller = employees_tree.getSumByIndexAux(employees_tree.getRoot(), total_employees - m);
+//        int sum_total = employees_tree.getRoot()->getSumOfGrades();
+
+        int high_sal =  employees_tree.findEmployeeByIndexAux(employees_tree.getRoot(),num_of_employees_with_salary)->getSalary();
+        int low_sal = employees_tree.findEmployeeByIndexAux(employees_tree.getRoot(),num_of_employees_with_salary-m+1)->getSalary();
+        int sum = employees_tree.sumInRangeForSum(employees_tree.getRoot(), low_sal,high_sal,m,num_of_employees_with_salary);
+        printf("SumOfBumpGradeBetweenTopWorkersByGroup: %d\n", sum);
+
         return SUCCESS;
     }
 }
 
-StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int CompanyID, int lowerSalary,
-                                                                 int higherSalary) {
+StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int CompanyID, int lowerSalary,int higherSalary) {
     if(higherSalary < 0 || lowerSalary < 0 || lowerSalary > higherSalary ||
                                       CompanyID > companies.getNumOfCompanies() || CompanyID < 0)
         return INVALID_INPUT;
     int h_sal = 0, l_sal = 0, num_in_range = 0, sum_in_range = 0;
+    double avg =0;
+
+
     if(CompanyID > 0){
         Company* company = companies.find(CompanyID);
         if(company->getEmployeesWithSalary() > 0 && higherSalary > 0) {
@@ -210,14 +221,21 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
             if((higherSalary >= l_sal && higherSalary <= h_sal) || (lowerSalary >= l_sal && lowerSalary <= h_sal)) {
                 int high_index = company->findIndexBelowCompany(higherSalary);
                 int low_index = company->findIndexAboveCompany(lowerSalary);
-                if(low_index <= high_index) {
-                    num_in_range = high_index - low_index + 1;
-                    int grade_of_highest_in_range = company->gradeByIndexCompany(high_index);
-                    int sum1 = company->sumByIndexCompany(low_index);
-                    int sum2 = company->sumByIndexCompany(high_index) + grade_of_highest_in_range;
-                    sum_in_range = sum2 - sum1;
-                }
+                num_in_range = high_index - low_index + 1;
+                sum_in_range = company->getEmployeesTree()->sumInRange(company->getEmployeesTree()->getRoot(), lowerSalary,higherSalary);
             }
+
+            //{
+//                int high_index = company->findIndexBelowCompany(higherSalary);
+//                int low_index = company->findIndexAboveCompany(lowerSalary);
+//                if(low_index <= high_index) {
+//                    num_in_range = high_index - low_index + 1;
+//                    int grade_of_highest_in_range = company->gradeByIndexCompany(high_index);
+//                    int sum1 = company->sumByIndexCompany(low_index);
+//                    int sum2 = company->sumByIndexCompany(high_index) + grade_of_highest_in_range;
+//                    sum_in_range = sum2 - sum1;
+//                }
+            //}
         }
         if(lowerSalary == 0 && num_in_range == 0 && company->getEmployeesNoSalary() == 0)
             return FAILURE;
@@ -226,7 +244,7 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
             num_in_range += company->getEmployeesNoSalary();
             sum_in_range += company->getSumOfGradesNoSalary();
         }
-        double avg = ((double)sum_in_range)/((double )num_in_range);
+            avg = ((double)sum_in_range)/((double )num_in_range);
         avg = ((double)((int)(avg*10.0 + 0.5)))/10.0;
         printf("AverageBumpGradeBetweenSalaryByGroup: %.1f\n", avg);
         return SUCCESS;
@@ -245,19 +263,27 @@ StatusType EmployeeManager::averageBumpGradeBetweenSalaryByGroup(void *DS, int C
                 int high_index = employees_tree.findIndexBelowAux(employees_tree.getRoot(), higherSalary);
                 int low_index = employees_tree.findIndexAboveAux(employees_tree.getRoot(), lowerSalary);
                 num_in_range = high_index - low_index + 1;
-                int grade_of_highest_in_range = employees_tree.gradeByIndexAux(employees_tree.getRoot(), high_index);
-                int sum1 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), low_index);
-                int sum2 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), high_index) + grade_of_highest_in_range;
-                sum_in_range = sum2 - sum1;
+                sum_in_range = employees_tree.sumInRange(employees_tree.getRoot(), lowerSalary, higherSalary);
             }
+            //{
+//                int high_index = employees_tree.findIndexBelowAux(employees_tree.getRoot(), higherSalary);
+//                int low_index = employees_tree.findIndexAboveAux(employees_tree.getRoot(), lowerSalary);
+//                num_in_range = high_index - low_index + 1;
+//                int grade_of_highest_in_range = employees_tree.gradeByIndexAux(employees_tree.getRoot(), high_index);
+//                int sum1 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), low_index);
+//                int sum2 = employees_tree.getSumByIndexAux(employees_tree.getRoot(), high_index) + grade_of_highest_in_range;
+//                sum_in_range = sum2 - sum1;
+
+            //}
         }
         if(lowerSalary == 0){
             num_in_range += num_of_employees_no_salary;
             sum_in_range += sum_of_grades_no_salary;
         }
-        double avgx = ((double)sum_in_range)/((double )num_in_range);
-        avgx = ((double)((int)(avgx*10.0 + 0.5)))/10.0;
-        printf("AverageBumpGradeBetweenSalaryByGroup: %.1f\n", avgx);
+
+            avg = ((double)sum_in_range)/((double )num_in_range);
+        avg = ((double)((int)(avg*10.0 + 0.5)))/10.0;
+        printf("AverageBumpGradeBetweenSalaryByGroup: %.1f\n", avg);
         return SUCCESS;
     }
 }
@@ -266,6 +292,22 @@ StatusType EmployeeManager::companyValue(void *DS, int CompanyID) {
         return INVALID_INPUT;
     printf("CompanyValue: %.1f\n", companies.davaiValue(CompanyID));
     return SUCCESS;
+}
+void EmployeeManager:: bumpTree(RankSumAvlTree* tree, int smallest, int highest,int bumpGrade){
+    RankSumAvlTree::treeNode* first_in_range = tree->findFirstInRange(tree->getRoot(),smallest,highest);
+    if(first_in_range){
+        int smallest_in_range = tree->findEmployeeByIndexAux(tree->getRoot(),tree->findIndexAboveAux(tree->getRoot(),smallest))->getSalary();
+        int highest_in_range = tree->findEmployeeByIndexAux(tree->getRoot(),tree->findIndexBelowAux(tree->getRoot(),highest))->getSalary();
+        first_in_range->increaseBonus(bumpGrade);
+        tree->updatePathToSmallest(first_in_range,smallest_in_range,bumpGrade);
+        tree->updatePathToHighest(first_in_range,highest_in_range,bumpGrade);
+    }
+}
+
+
+StatusType EmployeeManager:: bumpGradeToEmployees(void* DS, int lowerSalary,int higherSalary, int bumpGrade){
+    bumpTree(&employees_tree,lowerSalary,higherSalary,bumpGrade);
+
 }
 
 void EmployeeManager::quit(){

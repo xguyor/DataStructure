@@ -46,10 +46,9 @@ StatusType AverageBumpGradeBetweenSalaryByGroup(void *DS, int companyID, int low
 
 StatusType CompanyValue(void *DS, int companyID);
 
-/*
- * 20 point Bonus function:
-StatusType BumpGradeToEmployees(void *DS, int lowerSalary, int higherSalary, int bumpGrade);
- */
+// * 20 point Bonus function:
+//StatusType BumpGradeToEmployees(void *DS, int lowerSalary, int higherSalary, int bumpGrade);
+
 
 void Quit(void** DS);
 

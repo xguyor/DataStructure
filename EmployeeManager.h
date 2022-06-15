@@ -29,7 +29,9 @@ public:
     StatusType averageBumpGradeBetweenSalaryByGroup(void* DS,int CompanyID,int lowerSalary, int higherSalary);
     StatusType companyValue(void* DS, int CompanyID);
     StatusType bumpGradeToEmployees(void* DS, int lowerSalary,int higherSalary, int bumpGrade);
+    void bumpTree(RankSumAvlTree* tree, int smallest, int highest,int bumpGrade);
     void quit();
+
 
     };
 
